@@ -1,48 +1,34 @@
+from users.schemas import CreateUserRequest, UpdateUserRequest
 from fastapi import HTTPException, APIRouter
-from users.schemas import CreateUserRequest,UpdateUserRequest
+from users import service 
+import time 
 
 router = APIRouter()
 
-users = {}
-
-last_added_users_id = -1
-
 
 @router.get('')
-def get_user():
-    return users
+async def get_users():
+   return await service.get_users()
 
+@router.post('')
+async def create_user(user: CreateUserRequest):
+    return await service.create_user(user)
 
-@router.post('/register')
-def create_user(user: CreateUserRequest):
-    global last_added_user_id
-    new_user = last_added_user_id + 1
-    users[new_user] = user
-    last_added_user_id = new_user
-    return new_user
 
 
 @router.get('/{id}')
-def get_users(id:int):
-    if id not in users:
-        raise HTTPException(status_code=404, detail=f'No user with id {id} was found')
-    return users[id]
+async def get_users(id: int):
+     return await service.get_user_by_id(id)
 
-@router.put('/{id')
-def update_user(id: int, user_update: UpdateUserRequest):
-    if id not in users:
-        raise HTTPException(status_code=404, detail=f'No user with id {id} was found')
-    for key, value in user_update.dict().items():
-        if value is not None:
-            users[id][key] = value
 
-    return users
+@router.put('/{id}')
+async def edit_user(id: int, user_data: UpdateUserRequest):
+    return await service.edit_user(id,user_data)
+
+
 
 @router.delete('/{id}')
-def delete_user(id: int):
-    if id not in users:
-        raise HTTPException(status_code=404, detail=f'No user with id {id} was found')
-
-    del users[id]
-    return id
-
+async def delete_user(id: int):
+    await service.delete_user(id)
+    
+    return {"message":"ok,deleted"}
